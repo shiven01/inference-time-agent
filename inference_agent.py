@@ -27,8 +27,31 @@ def rag(question: str) -> str:
     
     return augmented_question
 
-def chain_of_thought(question: str) -> str:
-    pass
+def chain_of_thought(augmented_question: str) -> str:
+    system_message = (
+        "You are a helpful assistant. Think through problems step by step. "
+        "Show your reasoning process clearly, then provide the final answer "
+        "in the format: 'Final Answer: [answer]'"
+    )
+    
+    # Make LLM call
+    response = call_model_chat_completions(
+        prompt=augmented_question,
+        system=system_message
+    )
+    
+    if response["ok"] and response["text"]:
+        response_text = response["text"].strip()
+        
+        if "Final Answer:" in response_text:
+            parts = response_text.split("Final Answer:", 1)
+            answer = parts[1].strip()
+        else:
+            answer = response_text
+        
+        return answer
+    else:
+        return ""
 
 def self_refinement(question: str) -> str:
     pass
