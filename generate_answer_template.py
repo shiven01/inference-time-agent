@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any, Dict, List
+from inference_agent import rag, chain_of_thought, self_refinement
 
 
 INPUT_PATH = Path("cse_476_final_project_test_data.json")
@@ -31,11 +32,14 @@ def load_questions(path: Path) -> List[Dict[str, Any]]:
 def build_answers(questions: List[Dict[str, Any]]) -> List[Dict[str, str]]:
     answers = []
     for idx, question in enumerate(questions, start=1):
-        # Example: assume you have an agent loop that produces an answer string.
-        # real_answer = agent_loop(question["input"])
-        # answers.append({"output": real_answer})
-        placeholder_answer = f"Placeholder answer for question {idx}"
-        answers.append({"output": placeholder_answer})
+        question_text = question["input"]
+        
+        augmented_question = rag(question_text)
+        initial_answer = chain_of_thought(augmented_question)
+        final_answer = self_refinement(augmented_question, initial_answer)
+        
+        answers.append({"output": final_answer})
+    
     return answers
 
 

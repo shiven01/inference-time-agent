@@ -34,7 +34,6 @@ def chain_of_thought(augmented_question: str) -> str:
         "in the format: 'Final Answer: [answer]'"
     )
     
-    # Make LLM call
     response = call_model_chat_completions(
         prompt=augmented_question,
         system=system_message
@@ -53,5 +52,23 @@ def chain_of_thought(augmented_question: str) -> str:
     else:
         return ""
 
-def self_refinement(question: str) -> str:
-    pass
+def self_refinement(augmented_question: str, cot_answer: str) -> str:
+    system_message = (
+        "You are a helpful assistant. Review the given question and initial answer. "
+        "Provide a refined, improved final answer. Output only the refined answer—no explanation."
+    )
+    
+    prompt = f"Question: {augmented_question}\n\nInitial Answer: {cot_answer}\n\nRefined Answer:"
+    
+    response = call_model_chat_completions(
+        prompt=prompt,
+        system=system_message
+    )
+    
+    if response["ok"] and response["text"]:
+        refined_answer = response["text"].strip()
+        if len(refined_answer) >= 5000:
+            refined_answer = refined_answer[:4996] + "..."
+        return refined_answer
+    else:
+        return cot_answer
